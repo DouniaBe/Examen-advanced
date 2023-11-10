@@ -24,171 +24,88 @@ namespace Examen_advanced
     /// </summary>
     public partial class MainWindow : Window
     {
-        List<Categorie> categorieen = null;
-        Categorie selectedCategorie = null;
-        List<Product> producten = null;
-        Product selectedProduct = null;
+        private readonly MyDbContext _context;
 
-        MyDbContext context = new MyDbContext();
+       // MyDbContext context = new MyDbContext();
 
         public MainWindow()
         {
-            Initializer.DbSetInitializer(context);
-
             InitializeComponent();
-
-            categorieen = context.Categorieen.Where(c => c.Naam != "-").ToList();
-            lbCategorieen.ItemsSource = categorieen;
+            _context = new MyDbContext();
+            LoadProducts();
         }
 
-        private void lbCategorieen_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void LoadProducts()
         {
-            ClearMessage();
-            selectedCategorie = categorieen[lbCategorieen.SelectedIndex];
-            tbCategorie.Text = selectedCategorie.Naam;
-
-            producten = context.Producten.Where(p => p.CategorieId == selectedCategorie.Id).ToList();
-            lbProducten.ItemsSource = producten;
-            btAddProduct.Visibility = Visibility.Visible;
-        }
-
-        private void tbCategorie_LostFocus(object sender, RoutedEventArgs e)
-        {
-            ClearMessage();
             try
             {
-                Categorie cat = context.Categorieen.First(c => c.Naam == tbCategorie.Text);
+                // Laad de producten in de ListBox
+                ProductListBox.ItemsSource = _context.Products.ToList();
             }
-            catch
+            catch (Exception ex)
             {
-                spOmschrijving.Visibility = Visibility.Visible;
+                MessageBox.Show($"Fout bij het laden van producten: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void tbOmschrijving_LostFocus(object sender, RoutedEventArgs e)
+        private void AddProduct_Click(object sender, RoutedEventArgs e)
         {
-            ClearMessage();
-            if (tbOmschrijving.Text != "")
-            {
-                spOmschrijving.Visibility = Visibility.Hidden;
-                context.Categorieen.Add(new Categorie { Naam = tbCategorie.Text, Omschrijving = tbOmschrijving.Text });
-                context.SaveChanges();
-                categorieen = context.Categorieen.Where(c => c.Naam != "-").ToList();
-                lbCategorieen.ItemsSource = categorieen;
-            }
-        }
-
-        private void btAddProduct_Click(object sender, RoutedEventArgs e)
-        {
-            selectedProduct = null;
-            spProduct.Visibility = Visibility.Visible;
-            ClearMessage();
-        }
-
-        private void btBewaarProduct_Click(object sender, RoutedEventArgs e)
-        {
-            ClearMessage();
             try
             {
-                double bedrag = Convert.ToDouble(tbPrijs.Text);
+                // Voeg een nieuw product toe
+                var newProduct = new Product { Name = "Nieuw Product", Price = 0.0m };
+                _context.Products.Add(newProduct);
+                _context.SaveChanges();
 
-                if (selectedProduct == null)
+                LoadProducts();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij het toevoegen van een product: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void EditProduct_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Bewerk het geselecteerde product
+                var selectedProduct = (Product)ProductListBox.SelectedItem;
+                if (selectedProduct != null)
                 {
-                    Product product = new Product
-                    {
-                        Naam = tbProductNaam.Text,
-                        Omschrijving = tbProductOmschrijving.Text,
-                        Categorie = selectedCategorie
-                    };
-                    context.Producten.Add(product);
-                    context.Prijzen.Add(new Prijs { Bedrag = bedrag, Product = product });
+                    // Voer hier de bewerkingen uit, bijvoorbeeld een nieuw venster openen om het product te bewerken
+                    // In dit voorbeeld passen we eenvoudig de naam van het product aan
+                    selectedProduct.Name += " - Bewerkt";
+                    _context.SaveChanges();
+
+                    LoadProducts();
                 }
-                else
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij het bewerken van een product: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void DeleteProduct_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Verwijder het geselecteerde product
+                var selectedProduct = (Product)ProductListBox.SelectedItem;
+                if (selectedProduct != null)
                 {
-                    selectedProduct.Naam = tbProductNaam.Text;
-                    selectedProduct.Omschrijving = tbProductOmschrijving.Text;
-                    context.Update(selectedProduct);
-                    if (context.Prijzen.OrderBy(prijs => prijs.Vanaf).Last(prijs => prijs.ProductId == selectedProduct.Id).Bedrag != bedrag)
-                    {
-                        context.Prijzen.Add(new Prijs { Bedrag = bedrag, Product = selectedProduct });
-                    }
+                    _context.Products.Remove(selectedProduct);
+                    _context.SaveChanges();
+
+                    LoadProducts();
                 }
-                context.SaveChanges();
-                spProduct.Visibility = Visibility.Hidden;
-                producten = context.Producten.Where(p => p.CategorieId == selectedCategorie.Id).ToList();
-                lbProducten.ItemsSource = producten;
             }
-            catch
+            catch (Exception ex)
             {
-                ShowMessage("Er is een probleem met je prijs. Los dat op !!!");
-            }
-        }
-
-        private void lbProducten_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            selectedProduct = (Product)lbProducten.SelectedItem;
-            spProduct.Visibility = Visibility.Visible;
-            tbProductNaam.Text = selectedProduct.Naam;
-            tbProductOmschrijving.Text = selectedProduct.Omschrijving;
-            tbPrijs.Text = context.Prijzen.OrderBy(prijs => prijs.Vanaf).Last(prijs => prijs.ProductId == selectedProduct.Id).Bedrag.ToString();
-            ClearMessage();
-        }
-
-        private void ClearMessage()
-        {
-            tbMessage.Visibility = Visibility.Hidden;
-        }
-
-        private void ShowMessage(string message, bool serious = true)
-        {
-            tbMessage.Text = message;
-            tbMessage.Background = serious ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.Green);
-            tbMessage.Height = 30;
-            tbMessage.FontWeight = FontWeights.Bold;
-            tbMessage.FontSize = 13;
-            tbMessage.VerticalAlignment = VerticalAlignment.Center;
-            tbMessage.Visibility = Visibility.Visible;
-        }
-
-        private void btShowCase_Click(object sender, RoutedEventArgs e)
-        {
-            if (lbShowCase.Visibility == Visibility.Visible)
-            {
-                lbShowCase.Visibility = Visibility.Hidden;
-                lbLinq.Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                DateTime startTijd = DateTime.Now.AddMonths(-1);
-                List<Categorie> categorien = context.Categorieen
-                                                    .Where(c => c.Naam != "-")
-                                                    .Include(c => c.Producten)
-                                                    .ThenInclude(p => p.Prijzen
-                                                        .Where(prijs => prijs.Vanaf > startTijd))
-                                                    .ToList();
-                List<Categorie> categorien2 = categorien.Where(c => c.Producten.Any()).ToList();
-
-                lbShowCase.ItemsSource = categorien2;
-                lbShowCase.Visibility = Visibility.Visible;
-
-                var categorieQuery = from categorie in context.Categorieen
-                                     from product in categorie.Producten
-                                     from prijs in context.Prijzen
-                                     where categorie.Naam != "-"
-                                       && product.Naam != "-"
-                                       && product.CategorieId == categorie.Id
-                                       && prijs.ProductId == product.Id
-                                       && prijs.Vanaf > startTijd
-                                     select new
-                                     {
-                                         Naam = categorie.Naam,
-                                         ProductNaam = product.Naam,
-                                         Bedrag = prijs.Bedrag,
-                                         Vanaf = prijs.Vanaf
-                                     };
-                lbLinq.ItemsSource = categorieQuery.ToList();
-                lbLinq.Visibility = Visibility.Visible;
+                MessageBox.Show($"Fout bij het verwijderen van een product: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
 }
+

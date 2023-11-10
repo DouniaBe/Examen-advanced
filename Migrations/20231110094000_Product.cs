@@ -5,7 +5,7 @@
 namespace Examen_advanced.Migrations
 {
     /// <inheritdoc />
-    public partial class producten : Migration
+    public partial class Product : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
