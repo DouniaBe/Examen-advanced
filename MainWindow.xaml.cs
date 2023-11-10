@@ -62,6 +62,8 @@ namespace Examen_advanced
             catch (Exception ex)
             {
                 MessageBox.Show($"Fout bij het toevoegen van een product: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+                Console.WriteLine($"Inner exception details: {ex.InnerException}");
+
             }
         }
 

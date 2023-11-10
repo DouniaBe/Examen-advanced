@@ -7,9 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
-        <Style x:Key="TitleTextBlockStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="Blue"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="LightSkyBlue"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
         </Style>
     </Window.Resources>
     <Grid>
@@ -26,9 +27,9 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <Button Content="Toevoegen" Click="AddProduct_Click" Margin="0,10,0,0"/>
-            <Button Content="Bewerken" Click="EditProduct_Click" Margin="0,5,0,0"/>
-            <Button Content="Verwijderen" Click="DeleteProduct_Click" Margin="0,5,0,0"/>
+            <Button Content="Toevoegen" Click="AddProduct_Click" Style="{StaticResource ButtonStyle}"/>
+            <Button Content="Bewerken" Click="EditProduct_Click" Style="{StaticResource ButtonStyle}"/>
+            <Button Content="Verwijderen" Click="DeleteProduct_Click" Style="{StaticResource ButtonStyle}"/>
         </StackPanel>
     </Grid>
 </Window>
