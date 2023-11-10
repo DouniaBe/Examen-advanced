@@ -58,12 +58,13 @@ namespace Examen_advanced
                 _context.SaveChanges();
 
                 LoadProducts();
+                
+
+                Console.WriteLine("Product toegevoegd");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fout bij het toevoegen van een product: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
-                Console.WriteLine($"Inner exception details: {ex.InnerException}");
-
+                MessageBox.Show($"Fout bij het toevoegen van een product: {ex.Message}\n\nDetails: {ex.InnerException}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
